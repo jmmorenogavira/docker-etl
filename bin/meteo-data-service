@@ -1,0 +1,4 @@
+#!/bin/bash
+cd /app/icom-tilesrenderer
+uwsgi --plugin python --socket :9090 --enable-threads -w meteo.data_service:app
+

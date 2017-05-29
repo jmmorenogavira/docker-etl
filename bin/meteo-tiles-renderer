@@ -1,0 +1,4 @@
+#!/bin/bash
+cd /app/icom-tilesrenderer
+exec python run.py
+

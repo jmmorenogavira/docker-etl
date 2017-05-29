@@ -1,0 +1,14 @@
+#!/bin/bash
+EXCLUDE=${EXCLUDE:-.syncthing}
+DATA_MANAGER_AEMET=${DATA_MANAGER_ZIPFILES:-/data/aemet}
+DATA_MANAGER_UNZIPPED=${DATA_MANAGER_UNZIPPED:-/data/input}
+QUEUEFILESCRIPT=/app/icom-tilesrenderer/scripts/queuefile.py
+EXCLUDEOPT=
+[ x"${EXCLUDE}" != "x" ] && EXCLUDEOPT="--exclude=${EXCLUDE}"
+
+cd ${DATA_MANAGER_UNZIPPED}
+inotifywait -q -m -eclose_write -emoved_to ${EXCLUDEOPT} --format "%w%f" ${DATA_MANAGER_ZIPFILES} | while read FILENAME; 
+do
+      python ${QUEUEFILESCRIPT} -f "${FILENAME}"
+done
+

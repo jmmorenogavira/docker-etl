@@ -1,0 +1,105 @@
+# My docker-compose.yml file
+
+# UWSGI service 
+meteoapi:
+  image: etl
+  container_name: etl-meteoapi
+  command: meteo-data-service
+  volumes:
+  - /opt/workspaces/workspace_ETL/etl:/app/icom-tilesrenderer
+  ports:
+  - "9090:9090"
+  extra_hosts:
+  - db:192.168.1.106
+  environment:
+  - JSON_TABLE_MVP=True
+  - METEO_DEBUG=True
+  - ENABLE_SCHEDULERS=METAR,GRIB,TAF,BUFR,SIGMET,VOLCANO,CYCL,MVPROF,WEATHER
+  - POSTGRES_HOST=db
+  - BASE_PATH=/app/icom-tilesrenderer
+
+# Procesador de archivos de AEMET
+tilesrenderer:
+  image: etl
+  container_name: etl-tilesrenderer
+  command: meteo-tiles-renderer
+  ports:
+  - "8000:8000"
+  extra_hosts:
+  - db:192.168.1.106
+  - soa.afs.internal:192.168.1.106
+  - desa.af-sys.com:192.168.1.106
+  volumes:
+  - /opt/workspaces/workspace_ETL/input:/data/input
+  - /opt/workspaces/workspace_ETL/aemet:/data/aemet
+  - /opt/workspaces/workspace_ETL/noaa:/data/noaa
+  - /opt/workspaces/workspace_ETL/noaa_extracted:/data/noaa_extracted
+  - /opt/workspaces/workspace_ETL/ftp_noaa:/data/ftp_noaa
+  - /opt/workspaces/workspace_ETL/etl:/app/icom-tilesrenderer
+  - /opt/workspaces/workspace_ETL/aemet_processed:/data/aemet_processed
+  - /opt/workspaces/workspace_ETL/noaa_processed:/data/noaa_processed
+  - /opt/workspaces/workspace_ETL/aemet_splitted:/data/aemet_splitted
+  - /opt/workspaces/workspace_ETL/aemet_splitted_processed:/data/aemet_splitted_processed
+  - /opt/workspaces/workspace_ETL/aemet_tmp:/data/aemet_tmp
+  - /opt/workspaces/workspace_ETL/inputZIPModel:/data/inputZIPModel
+  - /opt/workspaces/workspace_ETL/output:/data/output
+  - /opt/workspaces/workspace_ETL/tmp:/data/tmp
+  environment:
+  - BASE_PATH=/app/icom-tilesrenderer
+  - POSTGRES_HOST=db
+  - METEO_MSG_SERVER=http://192.168.1.106:8080
+  - DATA_MANAGER_ENABLE=True
+  - DATA_MANAGER_TYPE=localfolder
+  - DATA_MANAGER_UNZIPPED=/data/input
+  - DATA_MANAGER_AEMET=/data/aemet/new_distribution
+  - DATA_MANAGER_AEMET_TMP=/data/aemet_tmp
+  - DATA_MANAGER_AEMET_PROCESSED=/data/aemet_processed
+  - DATA_MANAGER_AEMET_SPLITTED=/data/aemet_splitted
+  - DATA_MANAGER_AEMET_SPLITTED_PROCESSED=/data/aemet_splitted_processed
+  - DATA_MANAGER_NOAA=/data/noaa
+  - DATA_MANAGER_NOAA_PROCESSED=/data/noaa_processed
+  - NOAA_MANAGER_DOWNLOAD_ENABLED=True
+  - NOAA_MANAGER_EXTRACT_GRIB_ENABLED=True
+  - NOAA_FTP_LOCAL_FOLDER=/data/ftp_noaa
+  - NOAA_INPUT_LOCAL_FOLDER=/data/noaa
+  - NOAA_EXTRACTED_LOCAL_FOLDER=/data/noaa_extracted
+  - INPUT_ZIP_MODEL_FOLDER=/data/inputZIPModel
+  - OUTPUT_PATH=/data/output
+  - TMP_PATH=/data/tmp
+  - METEO_DEBUG=False
+#  - S3_ENABLE=True
+  - S3_ENABLE=False
+  - S3_ACCESS_KEY_ID=my_key
+  - S3_SECRET_ACCESS_KEY=my_secret
+  - S3_BUCKET=my_bucket
+  - S3_BUCKET_PREFIX=desa
+  - SUPPORTED_FORMAT_FILES=METAR,GRIB,TAF,BUFR,SIGMET,VOLCANO,CYCL
+#  - ENABLE_SCHEDULERS=METAR,GRIB,TAF,BUFR,SIGMET,VOLCANO,CYCL,MVPROF,WEATHER
+  - ENABLE_SCHEDULERS=BUFR
+  - NPROC_METAR=3
+  - NPROC_TAF=2
+  - NPROC_GRIB=4
+  - NPROC_BUFR=1
+  - NPROC_SIGMET=1
+  - NPROC_VOLCANO=1
+  - NPROC_CYCL=1
+  - NPROC_MVPROF=1
+  - NPROC_WEATHER=1
+  - DEBUG_BUFR=False
+  - DEBUG_SIGWX_TABLE=False
+  - POSTGRES_TIMEOUT=60
+  - POSTGRES_ST_TIMEOUT=300000
+  - JSON_TABLE_MVP=False
+  - MAX_TILE_ZOOM_TEMP=3
+  - MAX_TILE_ZOOM_TURBCAT=3
+  - MAX_TILE_ZOOM_TURBINCLD=3
+  - MAX_TILE_ZOOM_TROP=3
+  - MAX_TILE_ZOOM_ICING=3
+  - MAX_TILE_ZOOM_ISOBSF=3
+  - MAX_TILE_ZOOM_BUFR=3
+  - MAX_TILE_ZOOM_WIND=5
+  - MAX_TILE_ZOOM_RAIN=3
+  - PYTHONPATH=/opt/lib/python2.6/site-packages/
+  - BUFR_TABLES=/usr/local/lib/bufrtables/
+
+  
